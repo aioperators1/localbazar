@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Facebook, Twitter, Instagram, Youtube, Truck, ShieldCheck, CreditCard, Headphones, MessageCircle } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, Truck, ShieldCheck, CreditCard, Headphones, MessageCircle, Phone } from "lucide-react";
 import { useLanguage } from "@/components/providers/language-provider";
 import { cn } from "@/lib/utils";
 
@@ -47,10 +47,9 @@ export function Footer() {
                             {t("footer.about") || "Morocco's premier destination for high-end technology and professional grade hardware."}
                         </p>
                         <div className="flex justify-center md:justify-start gap-4">
-                            <SocialIcon icon={Facebook} />
-                            <SocialIcon icon={Twitter} />
-                            <SocialIcon icon={Instagram} />
-                            <SocialIcon icon={Youtube} />
+                            <SocialIcon icon={Facebook} href="https://www.facebook.com/share/176iWLN9yf/?mibextid=wwXIfr" />
+                            <SocialIcon icon={Instagram} href="https://www.instagram.com/soufiane_laptop_store?igsh=eXU1NG9kOTkxc2Mw&utm_source=qr" />
+                            <SocialIcon icon={Phone} href="tel:0669859084" />
                         </div>
                     </div>
 
@@ -149,9 +148,9 @@ function FooterLink({ href, children, className }: FooterLinkProps) {
     );
 }
 
-function SocialIcon({ icon: Icon }: { icon: React.ElementType }) {
+function SocialIcon({ icon: Icon, href }: { icon: React.ElementType, href: string }) {
     return (
-        <a href="#" className="w-12 h-12 bg-zinc-900 border border-white/5 rounded-2xl flex items-center justify-center text-zinc-500 hover:bg-white hover:text-black hover:border-white transition-all duration-500 hover:-translate-y-1">
+        <a href={href} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-zinc-900 border border-white/5 rounded-2xl flex items-center justify-center text-zinc-500 hover:bg-white hover:text-black hover:border-white transition-all duration-500 hover:-translate-y-1">
             <Icon className="w-5 h-5" />
         </a>
     );
