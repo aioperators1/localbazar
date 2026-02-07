@@ -29,14 +29,18 @@ export const useCart = create<CartStore>()(
                 const currentItems = get().items
                 const existingItem = currentItems.find((i) => i.id === item.id)
 
+                // Sanitize name on add
+                const cleanName = item.name.replace(/Setup Game/gi, '').replace(/- Setup Game/gi, '').trim()
+                const cleanItem = { ...item, name: cleanName }
+
                 if (existingItem) {
                     set({
                         items: currentItems.map((i) =>
-                            i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+                            i.id === item.id ? { ...i, quantity: i.quantity + 1, name: cleanName } : i
                         ),
                     })
                 } else {
-                    set({ items: [...currentItems, { ...item, quantity: 1 }] })
+                    set({ items: [...currentItems, { ...cleanItem, quantity: 1 }] })
                 }
             },
             decreaseItem: (id) => {
