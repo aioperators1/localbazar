@@ -97,7 +97,7 @@ async function main() {
             if (specs['pa_psu']) mappedSpecs['PSU'] = specs['pa_psu'];
 
             // Brand extraction
-            let brand = 'Setup Game';
+            let brand = 'Generic';
             if (productData.brand) {
                 if (typeof productData.brand === 'string') {
                     brand = productData.brand;
@@ -105,7 +105,7 @@ async function main() {
                     brand = productData.brand.name;
                 }
             } else {
-                // Try to infer from name for common brands if not Setup Game
+                // Try to infer from name for common brands
                 const name = productData.name.toLowerCase();
                 if (name.includes('msi')) brand = 'MSI';
                 else if (name.includes('asus')) brand = 'ASUS';
