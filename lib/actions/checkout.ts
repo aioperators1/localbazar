@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
+import { revalidatePath } from "next/cache";
 
 interface CheckoutItem {
     id: string; // Product ID
@@ -33,7 +34,7 @@ export async function placeOrder(data: CheckoutData) {
         const name = `${firstName} ${lastName}`.trim();
 
         // RUN EVERYTHING IN A TRANSACTION FOR ATOMICITY
-        return await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx) => {
             // 1. Find or Create User
             let user = await tx.user.findUnique({
                 where: { email },
@@ -41,11 +42,19 @@ export async function placeOrder(data: CheckoutData) {
 
             if (!user) {
                 const password = await hash(Math.random().toString(36).slice(-8) + (process.env.NEXTAUTH_SECRET || "default_secret"), 10);
+
+                // Ensure unique username
+                let username = email.split('@')[0].toLowerCase();
+                const existingUsername = await tx.user.findUnique({ where: { username } });
+                if (existingUsername) {
+                    username += Math.random().toString(36).slice(2, 6);
+                }
+
                 user = await tx.user.create({
                     data: {
                         email,
                         name,
-                        username: email.split('@')[0].toLowerCase() + Math.random().toString(36).slice(2, 6),
+                        username: username,
                         password,
                         role: "USER",
                     }
@@ -97,6 +106,13 @@ export async function placeOrder(data: CheckoutData) {
             return { success: true, orderId: order.id };
         });
 
+        // Revalidate admin paths to reflect new order immediately
+        revalidatePath('/admin');
+        revalidatePath('/admin/orders');
+        revalidatePath('/admin/dashboard');
+
+        return result;
+
     } catch (error: unknown) {
         console.error("Zenith Checkout Failure:", error);
         const message = error instanceof Error ? error.message : "Protocol failure during order allocation.";
@@ -106,4 +122,3 @@ export async function placeOrder(data: CheckoutData) {
         };
     }
 }
-
