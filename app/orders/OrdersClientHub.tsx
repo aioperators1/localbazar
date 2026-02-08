@@ -23,7 +23,9 @@ export default function OrdersClientHub({ initialOrders, isGuest }: OrdersClient
         e.preventDefault();
         if (!orderId.trim()) return;
         setLoading(true);
-        router.push(`/orders/${orderId}`);
+        // Remove # if present to ensure proper routing
+        const cleanId = orderId.replace('#', '').trim();
+        router.push(`/orders/${cleanId}`);
     };
 
     return (
