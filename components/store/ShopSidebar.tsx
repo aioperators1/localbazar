@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 
 interface Category {
     id: string;
@@ -38,6 +39,7 @@ export function ShopSidebar({ categories }: ShopSidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
 
+    const { t } = useLanguage();
     const currentCategory = searchParams.get("category");
     const currentFilter = searchParams.get("filter");
     const currentColor = searchParams.get("color");
@@ -68,7 +70,7 @@ export function ShopSidebar({ categories }: ShopSidebarProps) {
         <aside className="w-full hidden lg:block sticky top-32">
             <div className="space-y-8">
                 <div>
-                    <h2 className="text-[20px] font-serif font-black tracking-tight text-[#111111] mb-6">Filters</h2>
+                    <h2 className="text-[20px] font-serif font-black tracking-tight text-[#111111] mb-6">{t('shop.filters')}</h2>
                     <div className="h-0.5 w-8 bg-black mb-8" />
                 </div>
 
@@ -76,7 +78,7 @@ export function ShopSidebar({ categories }: ShopSidebarProps) {
                     {/* Categories */}
                     <AccordionItem value="categories" className="border-b border-[#F1F1F1]">
                         <AccordionTrigger className="hover:no-underline py-4 group">
-                            <span className="text-[12px] font-bold text-[#111111] uppercase tracking-[0.2em]">Collections</span>
+                            <span className="text-[12px] font-bold text-[#111111] uppercase tracking-[0.2em]">{t('shop.collections')}</span>
                         </AccordionTrigger>
                         <AccordionContent className="pb-6">
                             <ul className="space-y-3">
@@ -88,7 +90,7 @@ export function ShopSidebar({ categories }: ShopSidebarProps) {
                                             !currentCategory ? "font-bold text-black" : "text-[#616161] hover:text-black"
                                         )}
                                     >
-                                        All Collections
+                                        {t('shop.allCollections')}
                                     </button>
                                 </li>
                                 {categories.map((cat) => (
@@ -111,7 +113,7 @@ export function ShopSidebar({ categories }: ShopSidebarProps) {
                     {/* Price */}
                     <AccordionItem value="price" className="border-b border-[#F1F1F1]">
                         <AccordionTrigger className="hover:no-underline py-4">
-                            <span className="text-[12px] font-bold text-[#111111] uppercase tracking-[0.2em]">Price</span>
+                            <span className="text-[12px] font-bold text-[#111111] uppercase tracking-[0.2em]">{t('shop.price')}</span>
                         </AccordionTrigger>
                         <AccordionContent className="pb-8 pt-4">
                             <Slider
@@ -137,7 +139,7 @@ export function ShopSidebar({ categories }: ShopSidebarProps) {
                     {/* Colors - Visual Swatches */}
                     <AccordionItem value="colors" className="border-b border-[#F1F1F1]">
                         <AccordionTrigger className="hover:no-underline py-4">
-                            <span className="text-[12px] font-bold text-[#111111] uppercase tracking-[0.2em]">Color</span>
+                            <span className="text-[12px] font-bold text-[#111111] uppercase tracking-[0.2em]">{t('shop.color')}</span>
                         </AccordionTrigger>
                         <AccordionContent className="pb-6">
                             <div className="flex flex-wrap gap-3 pt-2">
@@ -170,7 +172,7 @@ export function ShopSidebar({ categories }: ShopSidebarProps) {
                     onClick={() => router.push(pathname)}
                     className="text-[11px] font-bold uppercase tracking-widest text-black hover:underline pt-4"
                 >
-                    Reset Filters
+                    {t('shop.reset')}
                 </button>
             </div>
         </aside>

@@ -165,6 +165,8 @@ model OrderItem {
   product   Product @relation(fields: [productId], references: [id])
   quantity  Int
   price     Decimal 
+  size      String?   // The size selected by the customer
+  color     String?   // The color selected by the customer (name or hex)
 
   @@index([orderId])
   @@index([productId])
@@ -239,6 +241,19 @@ model Brand {
   description String?
   featured    Boolean  @default(false)
   products    Product[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Voucher {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  type        String   @default("FIXED") // FIXED, PERCENTAGE
+  value       Decimal
+  expiryDate  DateTime?
+  usageLimit  Int      @default(0) // 0 means unlimited
+  usedCount   Int      @default(0)
+  active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

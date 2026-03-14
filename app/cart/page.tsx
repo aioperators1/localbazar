@@ -9,9 +9,15 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProductCarousel } from "@/components/store/ProductCarousel";
 import { getAllProducts } from "@/lib/actions/product";
+import { useCurrency } from "@/components/providers/currency-provider";
+import { useLanguage } from "@/components/providers/language-provider";
+import { EmptyState } from "@/components/store/EmptyState";
+import { cn } from "@/lib/utils";
 
 export default function CartPage() {
     const { items, removeItem, addItem, decreaseItem, totalPrice } = useCart();
+    const { formatPrice: formatCurrency } = useCurrency();
+    const { t, language } = useLanguage();
     const [mounted, setMounted] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
 
@@ -30,26 +36,26 @@ export default function CartPage() {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 bg-[#f3f5f6]">
-                <div className="bg-white p-12 text-center rounded-[4px] shadow-sm border border-zinc-100 max-w-md w-full">
-                    <ShoppingBag className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-zinc-900 mb-2">Your cart is empty</h1>
-                    <p className="text-zinc-500 text-sm mb-8">Discover our premium collections to start shopping.</p>
-                    <Link href="/shop" className="bg-brand-blue text-white px-8 py-3 rounded-[4px] text-xs font-bold uppercase tracking-wide hover:bg-brand-charcoal transition-colors inline-block">
-                        Back to Shop
-                    </Link>
-                </div>
+            <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 bg-[#f3f5f6]" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                <EmptyState 
+                    title={t('cart.empty')} 
+                    description={t('shop.empty.desc')}
+                    actionLabel={t('cart.continueShopping')}
+                    icon="cart"
+                />
             </div>
         );
     }
 
+    const isAr = language === 'ar';
+
     return (
-        <div className="min-h-screen bg-[#f3f5f6] text-zinc-900 pb-24 pt-10">
+        <div className="min-h-screen bg-[#f3f5f6] text-zinc-900 pb-12 lg:pb-24 pt-5 lg:pt-10" dir={isAr ? 'rtl' : 'ltr'}>
             <div className="container mx-auto px-4 lg:px-20 max-w-[1400px]">
 
-                <h1 className="text-[28px] font-bold text-[#111111] uppercase tracking-[0.1em] mb-6">My Cart</h1>
-
-
+                <h1 className={cn("text-[28px] font-black text-[#111111] uppercase tracking-[0.2em] mb-12 uppercase", isAr ? "text-center lg:text-right" : "text-center lg:text-left")}>
+                    {t('nav.cart')}
+                </h1>
 
                 <div className="grid lg:grid-cols-12 gap-8 items-start">
 
@@ -57,12 +63,12 @@ export default function CartPage() {
                     <div className="lg:col-span-8 flex flex-col gap-8">
 
                         {/* Cart Table Container */}
-                        <div className="bg-white border border-zinc-200 rounded-[4px] shadow-sm overflow-hidden">
+                        <div className="bg-white border border-zinc-200 rounded-[4px] shadow-sm overflow-hidden text-right">
                             {/* Table Header */}
                             <div className="grid grid-cols-12 gap-4 p-4 border-b border-zinc-100 text-[11px] font-bold text-zinc-500 uppercase tracking-widest hidden md:grid">
-                                <div className="col-span-6">Product</div>
-                                <div className="col-span-3 text-center">Quantity</div>
-                                <div className="col-span-3 text-right">Total</div>
+                                <div className="col-span-6 text-current">{t('sell.productName')}</div>
+                                <div className="col-span-3 text-center">QUANTITY</div>
+                                <div className={cn("col-span-3", isAr ? "text-left" : "text-right")}>TOTAL</div>
                             </div>
 
                             {/* Table Body (Items) */}
@@ -81,19 +87,19 @@ export default function CartPage() {
                                             <div className="w-20 h-20 relative bg-zinc-50 border border-zinc-100 rounded-[4px] p-2 shrink-0">
                                                 <Image src={item.image} alt={item.name} fill className="object-contain" />
                                             </div>
-                                            <div className="flex flex-col gap-1">
+                                            <div className={cn("flex flex-col gap-1", isAr ? "text-right" : "text-left")}>
                                                 <span className="text-[9px] uppercase font-bold text-zinc-400 tracking-[0.3em]">LOCAL BAZAR</span>
                                                 <Link href={`/product/${item.id}`} className="text-[15px] font-medium text-[#111111] hover:text-brand-burgundy transition-colors uppercase tracking-tight">
                                                     {item.name}
                                                 </Link>
                                                 {(item.size || item.color) && (
                                                     <div className="flex gap-3 mt-2">
-                                                        {item.size && <span className="text-[10px] text-zinc-500 uppercase tracking-widest bg-zinc-50 px-2 py-1 border border-zinc-100">Size: {item.size}</span>}
-                                                        {item.color && <span className="text-[10px] text-zinc-500 uppercase tracking-widest bg-zinc-50 px-2 py-1 border border-zinc-100">Color: {item.color}</span>}
+                                                        {item.size && <span className="text-[10px] text-zinc-500 uppercase tracking-widest bg-zinc-50 px-2 py-1 border border-zinc-100">{t('product.size')}: {item.size}</span>}
+                                                        {item.color && <span className="text-[10px] text-zinc-500 uppercase tracking-widest bg-zinc-50 px-2 py-1 border border-zinc-100">{t('product.color')}: {item.color}</span>}
                                                     </div>
                                                 )}
                                                 <span className="text-[14px] font-bold text-[#111111] mt-3 md:hidden">
-                                                    {Number(item.price).toLocaleString()}.00 QAR
+                                                    {formatCurrency(item.price)}
                                                 </span>
                                             </div>
                                         </div>
@@ -121,14 +127,14 @@ export default function CartPage() {
                                                 onClick={() => removeItem(item.id, item.size, item.color)}
                                                 className="text-[10px] font-bold uppercase tracking-widest text-brand-burgundy hover:underline transition-all mt-2"
                                             >
-                                                Remove
+                                                {t('cart.remove')}
                                             </button>
                                         </div>
 
                                         {/* Total Price */}
-                                        <div className="col-span-1 md:col-span-3 text-right hidden md:block">
+                                        <div className={cn("col-span-1 md:col-span-3 hidden md:block", isAr ? "text-left" : "text-right")}>
                                             <span className="text-[14px] font-bold text-zinc-500">
-                                                {Number(item.price * item.quantity).toLocaleString()}.00 QAR
+                                                {formatCurrency(item.price * item.quantity)}
                                             </span>
                                         </div>
                                     </motion.div>
@@ -138,31 +144,31 @@ export default function CartPage() {
 
                         {/* Our Guarantees Box */}
                         <div>
-                            <h2 className="text-[18px] font-bold text-brand-blue mb-4">Our Guarantees</h2>
+                            <h2 className={cn("text-[18px] font-bold text-brand-burgundy mb-4 uppercase tracking-widest", isAr ? "text-right" : "text-left")}>{t('footer.trust.support.title')}</h2>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 bg-white border border-zinc-200 rounded-[4px] shadow-sm">
 
-                                <div className="flex flex-col items-center text-center p-6 border-b md:border-b-0 md:border-r border-zinc-100">
-                                    <div className="mb-3 text-brand-blue">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                <div className={cn("flex flex-col items-center text-center p-6 border-b md:border-b-0 border-zinc-100", isAr ? "md:border-l" : "md:border-r")}>
+                                    <div className="mb-3 text-brand-burgundy">
+                                        <ShieldCheck className="w-8 h-8" />
                                     </div>
-                                    <h4 className="text-[13px] font-bold text-brand-blue mb-2">24/7 Support</h4>
-                                    <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">Available whenever you need us, via chat, email or phone</p>
+                                    <h4 className="text-[13px] font-bold text-[#111111] mb-2 uppercase tracking-wide">{t('footer.trust.warranty.title')}</h4>
+                                    <p className="text-[11px] text-zinc-500 leading-relaxed font-medium uppercase tracking-tight">{t('footer.trust.warranty.desc')}</p>
                                 </div>
 
-                                <div className="flex flex-col items-center text-center p-6 border-b md:border-b-0 md:border-r border-zinc-100">
-                                    <div className="mb-3 text-brand-blue">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.88 6.59l-8.59 4.31a2 2 0 0 1-1.84 0L1.86 6.59"></path><path d="M11.08 2.05l8.59 4.31c.95.48.95 1.86 0 2.34l-8.59 4.31a2 2 0 0 1-1.84 0L.59 8.7C-.36 8.22-.36 6.84.59 6.36l8.59-4.31a2 2 0 0 1 1.9 0z"></path><path d="M21 10.5v5a2 2 0 0 1-1 1.73l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 15.5v-5"></path></svg>
+                                <div className={cn("flex flex-col items-center text-center p-6 border-b md:border-b-0 border-zinc-100", isAr ? "md:border-l" : "md:border-r")}>
+                                    <div className="mb-3 text-brand-burgundy">
+                                        <Truck className="w-8 h-8" />
                                     </div>
-                                    <h4 className="text-[13px] font-bold text-brand-blue mb-2">Customers Love Us</h4>
-                                    <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">Over 10,000 followers on our social media pages</p>
+                                    <h4 className="text-[13px] font-bold text-[#111111] mb-2 uppercase tracking-wide">{t('footer.trust.delivery.title')}</h4>
+                                    <p className="text-[11px] text-zinc-500 leading-relaxed font-medium uppercase tracking-tight">{t('footer.trust.delivery.desc')}</p>
                                 </div>
 
                                 <div className="flex flex-col items-center text-center p-6">
-                                    <div className="mb-3 text-brand-blue">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    <div className="mb-3 text-brand-burgundy">
+                                        <CreditCard className="w-8 h-8" />
                                     </div>
-                                    <h4 className="text-[13px] font-bold text-brand-blue mb-2">Fast Delivery</h4>
-                                    <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">100% of shipments delivered within 24-48h to your home</p>
+                                    <h4 className="text-[13px] font-bold text-[#111111] mb-2 uppercase tracking-wide">{t('footer.trust.commerce.title')}</h4>
+                                    <p className="text-[11px] text-zinc-500 leading-relaxed font-medium uppercase tracking-tight">{t('footer.trust.commerce.desc')}</p>
                                 </div>
 
                             </div>
@@ -170,9 +176,9 @@ export default function CartPage() {
 
                         {suggestions.length > 0 && (
                             <div className="mt-12">
-                                <h2 className="text-[20px] font-bold text-brand-blue mb-6">Complete Your Look</h2>
+                                <h2 className={cn("text-[20px] font-bold text-[#111111] mb-6 uppercase tracking-widest", isAr ? "text-right" : "text-left")}>{t('product.youMayLike')}</h2>
                                 <div className="bg-white p-6 rounded-[4px] shadow-sm border border-zinc-200">
-                                    <ProductCarousel products={suggestions} title="" />
+                                    <ProductCarousel products={suggestions} />
                                 </div>
                             </div>
                         )}
@@ -185,34 +191,34 @@ export default function CartPage() {
                             <div className="bg-white border border-zinc-200 rounded-[4px] shadow-sm p-6 lg:p-8">
 
                                 <div className="space-y-4 mb-8 pb-8 border-b border-zinc-100">
-                                    <div className="flex justify-between text-[14px] font-medium text-zinc-500 uppercase tracking-widest">
-                                        <span>Subtotal</span>
-                                        <span>{totalPrice().toLocaleString()}.00 QAR</span>
+                                    <div className="flex justify-between text-[11px] font-bold text-zinc-400 uppercase tracking-widest">
+                                        <span>{t('cart.subtotal')}</span>
+                                        <span>{formatCurrency(totalPrice())}</span>
                                     </div>
-                                    <div className="flex justify-between text-[18px] font-black text-[#111111] uppercase tracking-tighter">
-                                        <span>Total</span>
-                                        <span>{totalPrice().toLocaleString()}.00 QAR</span>
+                                    <div className="flex justify-between text-[20px] font-black text-[#111111] uppercase tracking-tighter">
+                                        <span>{t('cart.total')}</span>
+                                        <span>{formatCurrency(totalPrice())}</span>
                                     </div>
                                 </div>
 
                                 <div className="mb-8">
-                                    <button className="w-full flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 py-4 border-b border-zinc-100 text-left hover:text-[#111111] transition-colors">
-                                        Order Instructions
+                                    <button className={cn("w-full flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 py-4 border-b border-zinc-100 hover:text-[#111111] transition-colors", isAr ? "text-right" : "text-left")}>
+                                        {t('product.description')}
                                         <ChevronDown className="w-4 h-4" />
                                     </button>
                                 </div>
 
-                                <p className="text-[11px] text-zinc-400 mb-8 leading-relaxed uppercase tracking-wider">
-                                    Tax and shipping calculated at checkout
+                                <p className={cn("text-[11px] text-zinc-400 mb-8 leading-relaxed uppercase tracking-wider font-bold", isAr ? "text-right" : "text-left")}>
+                                    {t('cart.shippingCalculated')}
                                 </p>
 
                                 <Link href="/checkout" className="block w-full bg-[#111111] hover:bg-brand-burgundy text-white text-center font-bold text-[12px] py-5 rounded-[2px] transition-all uppercase tracking-[0.3em] shadow-lg">
-                                    Checkout
+                                    {t('cart.checkout')}
                                 </Link>
 
-                                <div className="mt-8 flex justify-center items-center gap-2 text-[11px] font-bold text-zinc-500">
+                                <div className="mt-8 flex justify-center items-center gap-2 text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
                                     <ShieldCheck className="w-4 h-4" />
-                                    <span>100% Secure Payments</span>
+                                    <span>{t('cart.securePayment')}</span>
                                 </div>
 
                             </div>

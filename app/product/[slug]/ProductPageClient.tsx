@@ -10,7 +10,10 @@ import { ProductCarousel } from "@/components/store/ProductCarousel";
 import { Star, Truck, ShieldCheck, ArrowLeft, Minus, Plus, Heart, Share2, Ruler, Info, ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { useCurrency } from "@/components/providers/currency-provider";
+import { useLanguage } from "@/components/providers/language-provider";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ProductPageClientProps {
     product: any;
@@ -21,6 +24,9 @@ interface ProductPageClientProps {
 export default function ProductPageClient({ product, images, similarProducts }: ProductPageClientProps) {
     const router = useRouter();
     const addItem = useCart(state => state.addItem);
+    const { formatPrice: formatCurrency } = useCurrency();
+    const { t, language } = useLanguage();
+    const { toast } = useToast();
     const [quantity, setQuantity] = useState(1);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<any>(null);
@@ -40,7 +46,10 @@ export default function ProductPageClient({ product, images, similarProducts }: 
 
     const handleBuyNow = () => {
         if (sizes.length > 0 && !selectedSize) {
-            alert("Please select a size");
+            toast({
+                title: t('product.selectSize'),
+                variant: "destructive",
+            });
             return;
         }
         addItem({
@@ -63,12 +72,12 @@ export default function ProductPageClient({ product, images, similarProducts }: 
         <div className="bg-white min-h-screen pb-32 pt-6 text-[#111111]">
             <div className="container mx-auto px-4 lg:px-20 max-w-[1500px]">
                 {/* Breadcrumbs - Minimalist */}
-                <div className="flex items-center gap-2 mb-12 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
-                    <Link href="/" className="hover:text-[#111111] transition-colors">Home</Link>
-                    <ChevronRight className="w-3 h-3" />
-                    <Link href="/shop" className="hover:text-[#111111] transition-colors">Collections</Link>
-                    <ChevronRight className="w-3 h-3" />
-                    <span className="text-[#111111]">{categoryName}</span>
+                <div className="flex items-center gap-2 mb-12 text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-400">
+                    <Link href="/" className="hover:text-[#111111] transition-all duration-500">{t('shop.breadcrumb.home')}</Link>
+                    <ChevronRight className={cn("w-3 h-3 text-zinc-300", language === 'ar' && "rotate-180")} />
+                    <Link href="/shop" className="hover:text-[#111111] transition-all duration-500">{t('shop.breadcrumb.shop')}</Link>
+                    <ChevronRight className={cn("w-3 h-3 text-zinc-300", language === 'ar' && "rotate-180")} />
+                    <span className="text-[#111111] font-black">{categoryName}</span>
                 </div>
 
                 {/* Main Product Layout */}
@@ -91,7 +100,7 @@ export default function ProductPageClient({ product, images, similarProducts }: 
                             </h1>
                             <div className="flex items-center justify-center lg:justify-start gap-4">
                                 <span className="text-[22px] lg:text-[26px] font-medium text-[#111111]">
-                                    {formatPrice(product.price)}
+                                    {formatCurrency(product.price)}
                                 </span>
                             </div>
                         </div>
@@ -100,7 +109,7 @@ export default function ProductPageClient({ product, images, similarProducts }: 
                         {colors.length > 0 && (
                             <div className="mb-10">
                                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] mb-4 block text-zinc-500">
-                                    Color: <span className="text-[#111111]">{selectedColor?.name}</span>
+                                    {t('product.color')}: <span className="text-[#111111]">{selectedColor?.name}</span>
                                 </span>
                                 <div className="flex gap-4">
                                     {colors.map((color: any, idx: number) => (
@@ -126,10 +135,10 @@ export default function ProductPageClient({ product, images, similarProducts }: 
                         {sizes.length > 0 && (
                             <div className="mb-12">
                                 <div className="flex justify-between items-center mb-4">
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Select Size</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">{t('product.selectSize')}</span>
                                     <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.1em] text-zinc-400 hover:text-[#111111] transition-colors">
                                         <Ruler className="w-3.5 h-3.5" />
-                                        Size Guide
+                                        {t('product.sizeGuide')}
                                     </button>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
@@ -152,79 +161,95 @@ export default function ProductPageClient({ product, images, similarProducts }: 
                         )}
 
                         {/* Action Buttons */}
-                        <div className="space-y-4 mb-12">
-                            <AddToCart
-                                product={{
-                                    id: product.id,
-                                    name: product.name,
-                                    price: Number(product.price),
-                                    image: images[0],
-                                    size: selectedSize,
-                                    color: selectedColor?.name
-                                }}
-                                quantity={quantity}
-                                className="h-16 w-full bg-[#111111] text-white font-bold text-[12px] uppercase tracking-[0.3em] hover:bg-zinc-800 transition-all rounded-none"
-                            />
+                        <div className="space-y-6 mb-12">
+                            <div className="flex items-center gap-6">
+                                <div className="flex items-center border border-zinc-200 h-16 w-32 px-4 shadow-sm">
+                                    <button 
+                                        onClick={decreaseQty}
+                                        className="flex-1 flex items-center justify-center text-zinc-400 hover:text-black transition-colors"
+                                    >
+                                        <Minus className="w-4 h-4" />
+                                    </button>
+                                    <span className="flex-1 text-center font-black text-[14px]">{quantity}</span>
+                                    <button 
+                                        onClick={increaseQty}
+                                        className="flex-1 flex items-center justify-center text-zinc-400 hover:text-black transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <AddToCart
+                                    product={{
+                                        id: product.id,
+                                        name: product.name,
+                                        price: Number(product.price),
+                                        image: images[0],
+                                        size: selectedSize,
+                                        color: selectedColor?.name
+                                    }}
+                                    quantity={quantity}
+                                    className="h-16 flex-1 bg-[#111111] text-white font-bold text-[12px] uppercase tracking-[0.4em] hover:bg-zinc-800 transition-all rounded-[1px] shadow-lg"
+                                />
+                            </div>
                             <button
                                 onClick={handleBuyNow}
-                                className="h-16 w-full bg-white border border-[#111111] text-[#111111] font-bold text-[12px] uppercase tracking-[0.3em] hover:bg-[#111111] hover:text-white transition-all rounded-none"
+                                className="h-16 w-full bg-white border border-zinc-200 text-[#111111] font-bold text-[12px] uppercase tracking-[0.4em] hover:bg-[#111111] hover:text-white hover:border-[#111111] transition-all duration-500 rounded-[1px]"
                             >
-                                Buy It Now
+                                {t('product.buyNow')}
                             </button>
                         </div>
 
-                        {/* Product Utility Links */}
                         <div className="flex items-center justify-center lg:justify-start gap-8 border-b border-zinc-100 pb-10 mb-10">
                             <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 hover:text-[#111111] transition-colors">
                                 <Heart className="w-4 h-4" />
-                                Wishlist
+                                {t('product.wishlist')}
                             </button>
                             <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400 hover:text-[#111111] transition-colors">
                                 <Share2 className="w-4 h-4" />
-                                Share
+                                {t('product.share')}
                             </button>
                         </div>
 
                         {/* Accordion Details */}
                         <div className="space-y-6">
                             <AccordionItem 
-                                title="Description & Details" 
+                                title={t('product.description')} 
                                 isOpen={activeSection === "details"}
                                 onClick={() => setActiveSection(activeSection === "details" ? "" : "details")}
                             >
                                 <div className="space-y-4 text-[13px] text-zinc-600 leading-relaxed font-medium">
                                     <p>{product.description}</p>
                                     {product.materials && (
-                                        <p><strong className="text-[#111111] lowercase first-letter:uppercase font-bold">Material:</strong> {product.materials}</p>
+                                        <p><strong className="text-[#111111] lowercase first-letter:uppercase font-bold">{t('product.material')}:</strong> {product.materials}</p>
                                     )}
-                                    <p><strong className="text-[#111111] lowercase first-letter:uppercase font-bold">Season:</strong> New Collection {new Date().getFullYear()}</p>
-                                    <p><strong className="text-[#111111] lowercase first-letter:uppercase font-bold">Reference:</strong> {product.id?.slice(0, 8).toUpperCase()}</p>
+                                    <p><strong className="text-[#111111] lowercase first-letter:uppercase font-bold">{t('product.season')}:</strong> New Collection {new Date().getFullYear()}</p>
+                                    <p><strong className="text-[#111111] lowercase first-letter:uppercase font-bold">{t('product.reference')}:</strong> {product.id?.slice(0, 8).toUpperCase()}</p>
                                 </div>
                             </AccordionItem>
 
                             <AccordionItem 
-                                title="Care Instructions" 
+                                title={t('product.care')} 
                                 isOpen={activeSection === "care"}
                                 onClick={() => setActiveSection(activeSection === "care" ? "" : "care")}
                             >
                                 <p className="text-[13px] text-zinc-600 leading-relaxed font-medium capitalize first-letter:uppercase">
-                                    {product.careInstructions || "Professional cleaning recommended to preserve fabric quality."}
+                                    {product.careInstructions || (language === 'ar' ? "يوصى بالتنظيف الجاف للمحافظة على جودة المنتج." : "Professional cleaning recommended to preserve fabric quality.")}
                                 </p>
                             </AccordionItem>
 
                             <AccordionItem 
-                                title="Shipping & Returns" 
+                                title={t('product.shipping')} 
                                 isOpen={activeSection === "shipping"}
                                 onClick={() => setActiveSection(activeSection === "shipping" ? "" : "shipping")}
                             >
                                 <ul className="text-[13px] text-zinc-600 leading-relaxed font-medium space-y-2">
                                     <li className="flex items-center gap-3">
                                         <Truck className="w-4 h-4 text-[#111111]" />
-                                        <span>Free express shipping to Qatar</span>
+                                        <span>{t('footer.trust.delivery.title')} — Qatar Wide</span>
                                     </li>
                                     <li className="flex items-center gap-3">
                                         <ShieldCheck className="w-4 h-4 text-[#111111]" />
-                                        <span>Free returns within 7 days</span>
+                                        <span>{t('footer.trust.warranty.title')}</span>
                                     </li>
                                 </ul>
                             </AccordionItem>
@@ -236,8 +261,8 @@ export default function ProductPageClient({ product, images, similarProducts }: 
                 {similarProducts && similarProducts.length > 0 && (
                     <div className="mt-32 pt-24 border-t border-zinc-100">
                         <div className="text-center mb-16">
-                            <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-zinc-400 mb-4 block">Suggestions</span>
-                            <h2 className="text-[28px] lg:text-[36px] font-black text-[#111111] font-serif uppercase tracking-tight">You May Also Like</h2>
+                            <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-zinc-400 mb-4 block">{t('product.suggestions')}</span>
+                            <h2 className="text-[28px] lg:text-[36px] font-black text-[#111111] font-serif uppercase tracking-tight">{t('product.youMayLike')}</h2>
                         </div>
                         <ProductCarousel products={similarProducts} title="" />
                     </div>

@@ -7,6 +7,8 @@ import { Package, User, Calendar, CreditCard, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
+import { getAdminSettings } from "@/lib/actions/admin";
+import { InvoiceButton } from "@/components/admin/InvoiceButton";
 
 interface AdminOrderDetailsPageProps {
     params: Promise<{
@@ -17,22 +19,25 @@ interface AdminOrderDetailsPageProps {
 export default async function AdminOrderDetailsPage(props: AdminOrderDetailsPageProps) {
     const params = await props.params;
 
-    const order = await prisma.order.findUnique({
-        where: { id: params.id },
-        include: {
-            user: {
-                include: {
-                    addresses: {
-                        take: 1,
-                        orderBy: { createdAt: 'desc' }
+    const [order, settings] = await Promise.all([
+        prisma.order.findUnique({
+            where: { id: params.id },
+            include: {
+                user: {
+                    include: {
+                        addresses: {
+                            take: 1,
+                            orderBy: { createdAt: 'desc' }
+                        }
                     }
+                },
+                items: {
+                    include: { product: true }
                 }
-            },
-            items: {
-                include: { product: true }
             }
-        }
-    });
+        }),
+        getAdminSettings()
+    ]);
 
     if (!order) {
         notFound();
@@ -52,6 +57,9 @@ export default async function AdminOrderDetailsPage(props: AdminOrderDetailsPage
                         <OrderStatusSelect orderId={order.id} currentStatus={order.status} />
                     </h1>
                     <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">Protocole de gestion et correspondance prestige.</p>
+                </div>
+                <div className="ml-auto">
+                    <InvoiceButton order={order} settings={settings} />
                 </div>
             </div>
 

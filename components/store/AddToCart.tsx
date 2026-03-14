@@ -6,6 +6,7 @@ import { ShoppingCart, Check } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/providers/language-provider";
 
 interface AddToCartProps {
     product: {
@@ -24,6 +25,7 @@ interface AddToCartProps {
 export function AddToCart({ product, fullWidth = true, className, quantity = 1 }: AddToCartProps) {
     const addItem = useCart((state) => state.addItem);
     const { toast } = useToast();
+    const { t } = useLanguage();
     const [isAdding, setIsAdding] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -49,8 +51,8 @@ export function AddToCart({ product, fullWidth = true, className, quantity = 1 }
             setIsSuccess(true);
 
             toast({
-                title: "Added to cart", // Simple title
-                description: `${product.name} is now in your cart.`,
+                title: t('product.addedToCart'),
+                description: `${product.name} ${t('product.addedSuccess')}`,
                 variant: "default",
                 className: "bg-background/80 backdrop-blur-xl border-primary/20",
             });
@@ -70,8 +72,8 @@ export function AddToCart({ product, fullWidth = true, className, quantity = 1 }
                 "relative font-bold h-12 rounded-[3px] flex items-center justify-center gap-2 transition-colors",
                 fullWidth ? "w-full" : "px-8",
                 isSuccess
-                    ? "bg-brand-green hover:bg-emerald-600 text-brand-charcoal"
-                    : "bg-brand-blue hover:bg-brand-charcoal text-white",
+                    ? "bg-[#111111] text-white" 
+                    : "bg-[#111111] text-white hover:bg-[#333]",
                 className
             )}
         >
@@ -85,7 +87,7 @@ export function AddToCart({ product, fullWidth = true, className, quantity = 1 }
                         className="flex items-center gap-2"
                     >
                         <Check className="w-5 h-5" />
-                        <span>Ajouté.</span>
+                        <span>{t('product.addedShort')}</span>
                     </motion.div>
                 ) : (
                     <motion.div
@@ -100,7 +102,7 @@ export function AddToCart({ product, fullWidth = true, className, quantity = 1 }
                         ) : (
                             <ShoppingCart className="w-5 h-5" />
                         )}
-                        <span>{isAdding ? "Ajout..." : "Ajouter au panier"}</span>
+                        <span>{isAdding ? t('product.adding') : t('cart.add')}</span>
                     </motion.div>
                 )}
             </AnimatePresence>

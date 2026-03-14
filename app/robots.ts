@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/admin/', '/api/'], // Hide admin and api routes
         },
-        sitemap: 'https://electro-islam.com/sitemap.xml',
+        sitemap: 'https://localbazar.com/sitemap.xml',
     };
 }

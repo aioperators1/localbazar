@@ -28,6 +28,11 @@ const nextConfig: NextConfig = {
         hostname: 'techspace.ma',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
     ],
   },
 };

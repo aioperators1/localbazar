@@ -537,3 +537,68 @@ export async function deleteBrand(id: string) {
         return { success: false, error: String(error) };
     }
 }
+
+// --- VOUCHER MANAGEMENT ---
+export async function getAdminVouchers() {
+    try {
+        const vouchers = await prisma.voucher.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+        return vouchers.map(v => ({
+            ...v,
+            value: Number(v.value),
+            expiryDate: v.expiryDate?.toISOString() || null,
+            createdAt: v.createdAt.toISOString(),
+            updatedAt: v.updatedAt.toISOString(),
+        }));
+    } catch (error) {
+        console.error("Get Vouchers Error:", error);
+        return [];
+    }
+}
+
+export async function createVoucher(data: { code: string, type: string, value: number, expiryDate?: string, usageLimit?: number, active?: boolean }) {
+    try {
+        await prisma.voucher.create({
+            data: {
+                code: data.code.toUpperCase(),
+                type: data.type,
+                value: data.value,
+                expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
+                usageLimit: data.usageLimit || 0,
+                active: data.active ?? true,
+            }
+        });
+        revalidatePath('/admin/vouchers');
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function updateVoucher(id: string, data: Partial<{ code: string, type: string, value: number, expiryDate: string, usageLimit: number, active: boolean }>) {
+    try {
+        const updateData: any = { ...data };
+        if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate);
+        if (data.code) updateData.code = data.code.toUpperCase();
+
+        await prisma.voucher.update({
+            where: { id },
+            data: updateData
+        });
+        revalidatePath('/admin/vouchers');
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function deleteVoucher(id: string) {
+    try {
+        await prisma.voucher.delete({ where: { id } });
+        revalidatePath('/admin/vouchers');
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}

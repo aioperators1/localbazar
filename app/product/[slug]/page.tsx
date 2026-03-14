@@ -1,6 +1,7 @@
 import { getProductBySlug, getAllProducts } from "@/lib/actions/product";
 import { notFound } from "next/navigation";
 import ProductPageClient from "./ProductPageClient";
+import JsonLd from "@/components/store/JsonLd";
 
 export async function generateMetadata({
     params,
@@ -110,5 +111,31 @@ export default async function ProductPage({
             };
         });
 
-    return <ProductPageClient product={serializedProduct} images={images} similarProducts={similarProducts} />;
+    // structured data for SEO
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": product.name,
+        "image": images,
+        "description": product.description,
+        "sku": (product as any).sku || product.id,
+        "brand": {
+            "@type": "Brand",
+            "name": product.brandName || "Local Bazar"
+        },
+        "offers": {
+            "@type": "Offer",
+            "url": `https://localbazar.com/product/${product.slug}`,
+            "priceCurrency": "QAR",
+            "price": Number(product.price),
+            "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+        }
+    };
+
+    return (
+        <>
+            <JsonLd data={jsonLd} />
+            <ProductPageClient product={serializedProduct} images={images} similarProducts={similarProducts} />
+        </>
+    );
 }

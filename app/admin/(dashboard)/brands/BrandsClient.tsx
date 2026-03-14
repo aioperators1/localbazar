@@ -10,6 +10,7 @@ import { createBrand, deleteBrand, updateBrand } from "@/lib/actions/admin";
 import { toast } from "sonner";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 type Brand = {
     id: string;
@@ -137,12 +138,11 @@ export default function BrandsClient({ initialBrands }: { initialBrands: any[] }
                         </div>
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label className="text-[13px] font-medium">Logo URL</Label>
-                                <Input 
-                                    value={formData.logo}
-                                    onChange={e => setFormData({...formData, logo: e.target.value})}
-                                    placeholder="https://..."
-                                    className="h-10 border-[#D2D2D2]"
+                                <Label className="text-[13px] font-medium">Brand Logo</Label>
+                                <ImageUpload 
+                                    value={formData.logo ? [formData.logo] : []}
+                                    onChange={(urls) => setFormData({...formData, logo: urls[urls.length - 1]})}
+                                    onRemove={() => setFormData({...formData, logo: ""})}
                                 />
                             </div>
                             <div className="flex items-center gap-3 pt-8">

@@ -15,36 +15,49 @@ export interface CartItem {
 
 interface CartStore {
     items: CartItem[]
+    voucher: {
+        id: string
+        code: string
+        type: string
+        value: number
+    } | null
     addItem: (item: CartItem) => void
     removeItem: (id: string, size?: string | null, color?: string | null) => void
     decreaseItem: (id: string, size?: string | null, color?: string | null) => void
     clearCart: () => void
+    setVoucher: (voucher: CartStore['voucher']) => void
     totalItems: () => number
     totalPrice: () => number
+    discountAmount: () => number
 }
 
 export const useCart = create<CartStore>()(
     persist(
         (set, get) => ({
             items: [],
+            voucher: null,
             addItem: (item) => {
                 const currentItems = get().items
+                // Normalize size/color to null if falsy to prevent key mismatches
+                const targetSize = item.size ?? null;
+                const targetColor = item.color ?? null;
+
                 const existingItem = currentItems.find((i) => 
                     i.id === item.id && 
-                    i.size === item.size && 
-                    i.color === item.color
+                    i.size === targetSize && 
+                    i.color === targetColor
                 )
 
                 if (existingItem) {
                     set({
                         items: currentItems.map((i) =>
-                            (i.id === item.id && i.size === item.size && i.color === item.color)
+                            (i.id === item.id && i.size === targetSize && i.color === targetColor)
                                 ? { ...i, quantity: i.quantity + (item.quantity || 1) } 
                                 : i
                         ),
                     })
                 } else {
-                    set({ items: [...currentItems, { ...item, quantity: item.quantity || 1 }] })
+                    set({ items: [...currentItems, { ...item, size: targetSize, color: targetColor, quantity: item.quantity || 1 }] })
                 }
             },
             decreaseItem: (id, size, color) => {
@@ -76,9 +89,24 @@ export const useCart = create<CartStore>()(
                     ) 
                 })
             },
-            clearCart: () => set({ items: [] }),
+            clearCart: () => set({ items: [], voucher: null }),
+            setVoucher: (voucher) => set({ voucher }),
             totalItems: () => get().items.reduce((total, item) => total + item.quantity, 0),
-            totalPrice: () => get().items.reduce((total, item) => total + (item.price * item.quantity), 0),
+            totalPrice: () => {
+                const subtotal = get().items.reduce((total, item) => total + (item.price * item.quantity), 0);
+                const discount = get().discountAmount();
+                return Math.max(0, subtotal - discount);
+            },
+            discountAmount: () => {
+                const subtotal = get().items.reduce((total, item) => total + (item.price * item.quantity), 0);
+                const voucher = get().voucher;
+                if (!voucher) return 0;
+                
+                if (voucher.type === 'PERCENTAGE') {
+                    return (subtotal * voucher.value) / 100;
+                }
+                return voucher.value;
+            },
         }),
         {
             name: 'localbazar-cart-storage',

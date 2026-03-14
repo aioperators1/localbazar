@@ -6,33 +6,33 @@ import { useLanguage } from "@/components/providers/language-provider";
 import { cn } from "@/lib/utils";
 
 export function MarketplaceStats() {
-    const { language } = useLanguage();
+    const { t, language } = useLanguage();
     const isAr = language === "ar";
 
     const STATS = [
         {
-            label: isAr ? "الأكثر طلباً" : "Trending Now",
+            label: t('stats.trending'),
             value: "Silk Couture",
             icon: TrendingUp,
             color: "text-brand-burgundy",
             bg: "bg-brand-burgundy/10"
         },
         {
-            label: isAr ? "مستخدم نشط" : "Active Users",
+            label: t('stats.users'),
             value: "8,500+",
             icon: Users,
             color: "text-emerald-500",
             bg: "bg-emerald-500/10"
         },
         {
-            label: isAr ? "دعم مباشر" : "Live Support",
+            label: t('stats.support'),
             value: "24/7",
             icon: MessageCircle,
             color: "text-indigo-500",
             bg: "bg-indigo-500/10"
         },
         {
-            label: isAr ? "صفقات ناجحة" : "Direct Deals",
+            label: t('stats.deals'),
             value: "100%",
             icon: ShieldCheck,
             color: "text-purple-500",
@@ -78,15 +78,15 @@ export function MarketplaceStats() {
                         <div key={idx} className="flex gap-12 items-center px-6">
                             <span className="text-[10px] font-medium text-zinc-500 flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                                SILK EVENING DRESS LISTED IN CASABLANCA
+                                {t('stats.ticker1')}
                             </span>
                             <span className="text-[10px] font-medium text-zinc-500 flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                                LUXURY SUIT SOLD IN MARRAKECH
+                                {t('stats.ticker2')}
                             </span>
                             <span className="text-[10px] font-medium text-zinc-500 flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
-                                NEW DESIGNER ACCESSORY LISTED IN TANGIER
+                                {t('stats.ticker3')}
                             </span>
                         </div>
                     ))}

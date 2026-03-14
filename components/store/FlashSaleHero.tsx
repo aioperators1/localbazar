@@ -182,8 +182,8 @@ export function FlashSaleHero({ product = defaultProduct }: FlashSaleHeroProps) 
                             className="absolute top-1/4 right-0 lg:right-4 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl hidden md:block"
                         >
                             <div className="flex flex-col gap-1">
-                                <span className="text-[9px] text-[#E2D8C5]/40 font-bold uppercase tracking-widest">Authentication</span>
-                                <span className="text-[12px] text-white font-black italic">VERIFIED GENUINE</span>
+                                <span className="text-[9px] text-[#E2D8C5]/40 font-bold uppercase tracking-widest">{t('flash.auth')}</span>
+                                <span className="text-[12px] text-white font-black italic">{t('flash.verified')}</span>
                             </div>
                         </motion.div>
                     </div>
@@ -193,9 +193,9 @@ export function FlashSaleHero({ product = defaultProduct }: FlashSaleHeroProps) 
                 {/* BOTTOM MARQUEE */}
                 <div className="absolute bottom-6 left-0 w-full overflow-hidden opacity-20 whitespace-nowrap hidden lg:block">
                     <div className="animate-marquee inline-flex gap-12 text-[10px] font-black text-white uppercase tracking-[0.8em]">
-                        <span>• EXCLUSIVE ACCESS • BI-LATERAL LOGISTICS • LUXURY PROTOCOL • QATAR DELIVERY</span>
-                        <span>• EXCLUSIVE ACCESS • BI-LATERAL LOGISTICS • LUXURY PROTOCOL • QATAR DELIVERY</span>
-                        <span>• EXCLUSIVE ACCESS • BI-LATERAL LOGISTICS • LUXURY PROTOCOL • QATAR DELIVERY</span>
+                        <span>{t('flash.marquee1')}</span>
+                        <span>{t('flash.marquee1')}</span>
+                        <span>{t('flash.marquee1')}</span>
                     </div>
                 </div>
             </motion.div>

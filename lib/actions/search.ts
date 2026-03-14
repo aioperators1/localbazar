@@ -15,22 +15,18 @@ export async function searchProducts(query: string) {
                     { category: { name: { contains: query } } }
                 ]
             },
-            take: 5,
-            select: {
-                id: true,
-                name: true,
-                slug: true,
-                price: true,
-                images: true
+            take: 10,
+            include: {
+                category: true
             }
         });
 
-        // Normalize image (since schema says String, assuming it might be JSON or single URL)
         return products.map(p => ({
             id: p.id,
             name: p.name,
             slug: p.slug,
             price: Number(p.price),
+            category: p.category,
             image: p.images ? (p.images.startsWith('[') ? JSON.parse(p.images)[0] : p.images.split(',')[0]) : '/placeholder.jpg'
         }));
 

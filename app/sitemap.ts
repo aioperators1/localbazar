@@ -2,12 +2,14 @@ import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = 'https://electro-islam.com';
+    const baseUrl = 'https://localbazar.com';
 
     // Static pages
     const routes = [
         '',
         '/shop',
+        '/deals',
+        '/support',
         '/login',
         '/register',
         '/cart',

@@ -23,10 +23,12 @@ import {
     Code,
     ChevronLeft,
     Plus,
-    Trash2
+    Trash2,
+    X
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { ImageUpload } from "./ImageUpload";
 
 interface Category {
     id: string;
@@ -64,6 +66,39 @@ export default function ProductForm({ categories, brands, initialData }: Product
     const [loading, setLoading] = useState(false);
     const [name, setName] = useState(initialData?.name || "");
     const [slug, setSlug] = useState(initialData?.slug || "");
+    
+    // Parse specs for productType and tags
+    const initialSpecs = (() => {
+        try {
+            return JSON.parse(initialData?.specs || "{}");
+        } catch {
+            return {};
+        }
+    })();
+    
+    const [productType, setProductType] = useState(initialSpecs.productType || "");
+    const [tags, setTags] = useState(initialSpecs.tags || "");
+
+    // Advanced Attributes State
+    const [sizesList, setSizesList] = useState<string[]>(() => {
+        try {
+            return JSON.parse(initialData?.sizes || '["S", "M", "L", "XL"]');
+        } catch {
+            return ["S", "M", "L", "XL"];
+        }
+    });
+
+    const [colorsList, setColorsList] = useState<{name: string, hex: string}[]>(() => {
+        try {
+            return JSON.parse(initialData?.colors || '[]');
+        } catch {
+            return [];
+        }
+    });
+
+    const [newSize, setNewSize] = useState("");
+    const [newColorName, setNewColorName] = useState("");
+    const [newColorHex, setNewColorHex] = useState("#000000");
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -83,22 +118,9 @@ export default function ProductForm({ categories, brands, initialData }: Product
         } catch (e) {
             console.error("Image parse error", e);
         }
-        return [""];
+        return [];
     });
 
-    const addImageField = () => setImages([...images, ""]);
-    const updateImageField = (index: number, value: string) => {
-        const newImages = [...images];
-        newImages[index] = value;
-        setImages(newImages);
-    };
-    const removeImageField = (index: number) => {
-        if (images.length > 1) {
-            setImages(images.filter((_, i) => i !== index));
-        } else {
-            setImages([""]);
-        }
-    };
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -120,9 +142,13 @@ export default function ProductForm({ categories, brands, initialData }: Product
             brandName: formData.get("brandName") as string,
             sku: formData.get("sku") as string,
             description: formData.get("description") as string,
-            specs: initialData?.specs || "{}",
-            sizes: formData.get("sizes") as string,
-            colors: formData.get("colors") as string,
+            specs: JSON.stringify({
+                ...initialSpecs,
+                productType,
+                tags
+            }),
+            sizes: JSON.stringify(sizesList),
+            colors: JSON.stringify(colorsList),
             materials: formData.get("materials") as string,
             careInstructions: formData.get("careInstructions") as string,
         };
@@ -239,48 +265,129 @@ export default function ProductForm({ categories, brands, initialData }: Product
                     <div className="bg-white rounded-xl border border-[#E3E3E3] shadow-sm p-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <Label className="text-[11px] font-black text-[#616161] uppercase tracking-widest">Media Gallery</Label>
-                            <Button type="button" variant="ghost" onClick={addImageField} className="h-7 text-[10px] font-bold text-[#005BD3] hover:bg-[#F1F1F1]">
-                                <Plus className="w-3 h-3 mr-1" /> Add Image URL
-                            </Button>
                         </div>
-                        <div className="grid grid-cols-1 gap-3">
-                            {images.map((url, idx) => (
-                                <div key={idx} className="flex gap-2">
-                                    <div className="relative w-10 h-10 rounded-lg bg-[#F1F1F1] overflow-hidden shrink-0 border border-[#E3E3E3]">
-                                        {url ? (
-                                            <Image src={url} alt="preview" fill className="object-cover" unoptimized />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <ImageIcon className="w-4 h-4 text-[#D2D2D2]" />
-                                            </div>
-                                        )}
-                                    </div>
-                                    <Input 
-                                        value={url}
-                                        onChange={e => updateImageField(idx, e.target.value)}
-                                        placeholder="https://..."
-                                        className="text-[12px] h-10 border-[#D2D2D2] bg-white rounded-lg focus:ring-1 focus:ring-black flex-1"
-                                    />
-                                    <Button 
-                                        type="button" 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        onClick={() => removeImageField(idx)}
-                                        className="h-10 w-10 text-rose-500 hover:bg-rose-50 hover:text-rose-600 rounded-lg"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
+                        <ImageUpload 
+                            value={images.filter(img => img.trim() !== "")}
+                            onChange={(urls: string[]) => setImages(urls)}
+                            onRemove={(url: string) => setImages(images.filter(img => img !== url))}
+                        />
                     </div>
 
                     {/* Specifications Accordion Replacement (Native for Form) */}
                     <div className="bg-white rounded-xl border border-[#E3E3E3] shadow-sm p-6 space-y-6">
                         <Label className="text-[11px] font-black text-[#616161] uppercase tracking-widest">Detailed Specifications</Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* SIZES MANAGEMENT */}
+                            <div className="space-y-4">
+                                <Label className="text-[11px] font-black text-[#616161] uppercase tracking-widest block">Available Sizes</Label>
+                                <div className="flex flex-wrap gap-2 min-h-[40px] p-3 border border-[#D2D2D2] rounded-lg bg-[#F9F9F9]">
+                                    {sizesList.map((size, index) => (
+                                        <div key={index} className="flex items-center gap-1.5 bg-white border border-[#E3E3E3] px-2.5 py-1 rounded-md shadow-sm animate-in zoom-in-95">
+                                            <span className="text-[12px] font-bold text-[#303030]">{size}</span>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setSizesList(sizesList.filter((_, i) => i !== index))}
+                                                className="text-[#A1A1A1] hover:text-rose-500 transition-colors"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {sizesList.length === 0 && <span className="text-[11px] text-[#A1A1A1] italic">No sizes added</span>}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Input 
+                                        value={newSize}
+                                        onChange={(e) => setNewSize(e.target.value)}
+                                        placeholder="e.g. EU 42"
+                                        className="h-9 border-[#D2D2D2] rounded-lg text-[13px]"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                if (newSize.trim()) {
+                                                    setSizesList([...sizesList, newSize.trim()]);
+                                                    setNewSize("");
+                                                }
+                                            }
+                                        }}
+                                    />
+                                    <Button 
+                                        type="button" 
+                                        variant="outline"
+                                        onClick={() => {
+                                            if (newSize.trim()) {
+                                                setSizesList([...sizesList, newSize.trim()]);
+                                                setNewSize("");
+                                            }
+                                        }}
+                                        className="h-9 border-[#D2D2D2] rounded-lg"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* COLORS MANAGEMENT */}
+                            <div className="space-y-4">
+                                <Label className="text-[11px] font-black text-[#616161] uppercase tracking-widest block">Available Colors</Label>
+                                <div className="flex flex-wrap gap-2 min-h-[40px] p-3 border border-[#D2D2D2] rounded-lg bg-[#F9F9F9]">
+                                    {colorsList.map((color, index) => (
+                                        <div key={index} className="flex items-center gap-2 bg-white border border-[#E3E3E3] px-2 py-1 rounded-md shadow-sm pr-1 animate-in zoom-in-95">
+                                            <div className="w-3.5 h-3.5 rounded-full border border-black/10" style={{ backgroundColor: color.hex }} />
+                                            <span className="text-[11px] font-bold text-[#303030] max-w-[60px] truncate">{color.name}</span>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setColorsList(colorsList.filter((_, i) => i !== index))}
+                                                className="ml-1 text-[#A1A1A1] hover:text-rose-500 transition-colors"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {colorsList.length === 0 && <span className="text-[11px] text-[#A1A1A1] italic">No colors added</span>}
+                                </div>
+                                <div className="space-y-3 p-4 border border-dashed border-[#D2D2D2] rounded-lg">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Input 
+                                            value={newColorName}
+                                            onChange={(e) => setNewColorName(e.target.value)}
+                                            placeholder="Color name"
+                                            className="h-8 border-[#D2D2D2] rounded-md text-[12px]"
+                                        />
+                                        <div className="flex gap-1">
+                                            <Input 
+                                                type="color"
+                                                value={newColorHex}
+                                                onChange={(e) => setNewColorHex(e.target.value)}
+                                                className="h-8 w-10 p-0 border-[#D2D2D2] rounded-md overflow-hidden cursor-pointer"
+                                            />
+                                            <Input 
+                                                value={newColorHex}
+                                                onChange={(e) => setNewColorHex(e.target.value)}
+                                                className="h-8 flex-1 border-[#D2D2D2] rounded-md text-[11px] font-mono"
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button 
+                                        type="button" 
+                                        onClick={() => {
+                                            if (newColorName.trim()) {
+                                                setColorsList([...colorsList, { name: newColorName.trim(), hex: newColorHex }]);
+                                                setNewColorName("");
+                                            }
+                                        }}
+                                        className="w-full h-8 bg-zinc-100 text-[#303030] hover:bg-zinc-200 border-[#D2D2D2] text-[11px] font-bold"
+                                        variant="outline"
+                                    >
+                                        Add Color Variant
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#F1F1F1]">
                             <div className="space-y-2">
-                                <Label htmlFor="materials" className="text-[11px] text-[#616161] font-bold">Materials</Label>
+                                <Label htmlFor="materials" className="text-[11px] text-[#616161] font-bold uppercase tracking-widest">Materials</Label>
                                 <Input 
                                     id="materials" 
                                     name="materials" 
@@ -290,33 +397,13 @@ export default function ProductForm({ categories, brands, initialData }: Product
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="careInstructions" className="text-[11px] text-[#616161] font-bold">Care Instructions</Label>
+                                <Label htmlFor="careInstructions" className="text-[11px] text-[#616161] font-bold uppercase tracking-widest">Care Instructions</Label>
                                 <Input 
                                     id="careInstructions" 
                                     name="careInstructions" 
                                     defaultValue={initialData?.careInstructions || ""} 
                                     placeholder="e.g. Dry clean only"
                                     className="bg-white border-[#D2D2D2] h-10 rounded-lg text-[13px]"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="sizes" className="text-[11px] text-[#616161] font-bold">Available Sizes (JSON array)</Label>
-                                <Input 
-                                    id="sizes" 
-                                    name="sizes" 
-                                    defaultValue={initialData?.sizes || '["S", "M", "L", "XL"]'} 
-                                    placeholder='["S", "M", "L"]'
-                                    className="bg-white border-[#D2D2D2] h-10 rounded-lg text-[13px] font-mono"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="colors" className="text-[11px] text-[#616161] font-bold">Available Colors (JSON array)</Label>
-                                <Input 
-                                    id="colors" 
-                                    name="colors" 
-                                    defaultValue={initialData?.colors || '[]'} 
-                                    placeholder='[{"name": "Noir", "hex": "#000"}]'
-                                    className="bg-white border-[#D2D2D2] h-10 rounded-lg text-[13px] font-mono"
                                 />
                             </div>
                         </div>
@@ -463,11 +550,21 @@ export default function ProductForm({ categories, brands, initialData }: Product
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[11px] text-[#616161] font-bold">Product Type</Label>
-                                <Input placeholder="e.g. Accessories" className="h-9 text-[13px] border-[#D2D2D2] rounded-lg bg-[#F9F9F9] focus:ring-1 focus:ring-black" />
+                                <Input 
+                                    value={productType}
+                                    onChange={(e) => setProductType(e.target.value)}
+                                    placeholder="e.g. Accessories" 
+                                    className="h-9 text-[13px] border-[#D2D2D2] rounded-lg bg-[#F9F9F9] focus:ring-1 focus:ring-black" 
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[11px] text-[#616161] font-bold">Tags</Label>
-                                <Input placeholder="luxury, qatari, exclusive" className="h-9 text-[13px] border-[#D2D2D2] rounded-lg bg-[#F9F9F9] focus:ring-1 focus:ring-black" />
+                                <Input 
+                                    value={tags}
+                                    onChange={(e) => setTags(e.target.value)}
+                                    placeholder="luxury, qatari, exclusive" 
+                                    className="h-9 text-[13px] border-[#D2D2D2] rounded-lg bg-[#F9F9F9] focus:ring-1 focus:ring-black" 
+                                />
                             </div>
                         </div>
                     </div>

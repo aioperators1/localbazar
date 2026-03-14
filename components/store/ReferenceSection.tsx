@@ -6,6 +6,7 @@ import { ProductCard } from "./ProductCard";
 import { cn } from "@/lib/utils";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 
 interface ReferenceSectionProps {
     title: string;
@@ -24,6 +25,8 @@ export function ReferenceSection({
     reverse = false,
     dark = false
 }: ReferenceSectionProps) {
+    const { t, language } = useLanguage();
+    const isAr = language === 'ar';
     const scrollRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(products.length > 4);
@@ -31,8 +34,10 @@ export function ReferenceSection({
     const checkScroll = () => {
         if (!scrollRef.current) return;
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-        setCanScrollLeft(scrollLeft > 0);
-        setCanScrollRight(Math.ceil(scrollLeft + clientWidth) < scrollWidth);
+        // In RTL, scrollLeft is negative or works differently. 
+        // For simplicity with standard CSS scroll, we just check if it's at start/end
+        setCanScrollLeft(Math.abs(scrollLeft) > 5);
+        setCanScrollRight(Math.ceil(Math.abs(scrollLeft) + clientWidth) < scrollWidth - 5);
     };
 
     useEffect(() => {
@@ -45,15 +50,20 @@ export function ReferenceSection({
         if (!scrollRef.current) return;
         const container = scrollRef.current;
         const scrollAmount = container.clientWidth;
+        
+        // Multiplier for RTL
+        const multiplier = isAr ? -1 : 1;
+        const finalDirection = direction === "left" ? -1 : 1;
+
         container.scrollBy({
-            left: direction === "left" ? -scrollAmount : scrollAmount,
+            left: finalDirection * scrollAmount * multiplier,
             behavior: "smooth"
         });
-        setTimeout(checkScroll, 350); // Re-check after animation
+        setTimeout(checkScroll, 350);
     };
 
     return (
-        <section className="py-12">
+        <section className="py-12" dir={isAr ? "rtl" : "ltr"}>
             <div className={cn(
                 "container mx-auto px-4 lg:px-20 overflow-visible flex flex-col min-h-[420px] gap-6",
                 reverse ? "lg:flex-row-reverse" : "lg:flex-row"
@@ -63,15 +73,15 @@ export function ReferenceSection({
                     "w-full lg:w-[340px] p-10 flex flex-col relative shrink-0 rounded-t-[160px] rounded-b-[4px] overflow-hidden shadow-sm border border-zinc-100 group transition-all duration-700 hover:shadow-xl",
                     dark ? "bg-[#111111] text-white" : "bg-white text-[#111111]"
                 )}>
-                    {/* Background Pattern (Simulation of brand motifs) */}
+                    {/* Background Pattern */}
                     <div className="absolute inset-0 opacity-[0.05] bg-[url('https://www.transparenttextures.com/patterns/black-linen.png')] bg-repeat mix-blend-multiply"></div>
                     <div className="absolute inset-0 opacity-[0.02] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-repeat"></div>
 
-                    <div className="space-y-6 relative z-10 mb-8 mt-12 text-center lg:text-left">
+                    <div className={cn("space-y-6 relative z-10 mb-8 mt-12 text-center", isAr ? "lg:text-right" : "lg:text-left")}>
                         <h2 className="text-[28px] font-black uppercase tracking-tight leading-tight font-serif">
                             {title}
                         </h2>
-                        <div className="w-12 h-px bg-brand-burgundy mx-auto lg:mx-0"></div>
+                        <div className={cn("w-12 h-px bg-brand-burgundy mx-auto", isAr ? "lg:mr-0 lg:ml-auto" : "lg:ml-0 lg:mr-auto")}></div>
                         <p className={cn("text-[11px] font-medium leading-relaxed uppercase tracking-widest", dark ? "text-zinc-400" : "text-zinc-500")}>
                             {description}
                         </p>
@@ -80,7 +90,7 @@ export function ReferenceSection({
                                 href="/shop"
                                 className="inline-block bg-[#111111] hover:bg-brand-burgundy text-white px-10 py-4 rounded-[2px] text-[10px] font-bold uppercase tracking-[0.3em] transition-all shadow-xl hover:scale-105"
                             >
-                                Explorer
+                                {t('common.explore')}
                             </Link>
                         </div>
                     </div>
@@ -102,9 +112,12 @@ export function ReferenceSection({
                     {canScrollLeft && (
                         <button
                             onClick={() => scroll("left")}
-                            className="absolute left-[-20px] top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white text-[#111111] flex items-center justify-center shadow-xl border border-zinc-100 z-20 hover:scale-110 hover:bg-[#111111] hover:text-white transition-all hidden lg:flex"
+                            className={cn(
+                                "absolute top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white text-[#111111] flex items-center justify-center shadow-xl border border-zinc-100 z-20 hover:scale-110 hover:bg-[#111111] hover:text-white transition-all hidden lg:flex",
+                                isAr ? "right-[-20px]" : "left-[-20px]"
+                            )}
                         >
-                            <ChevronLeft className="w-5 h-5 mr-0.5" />
+                            <ChevronLeft className={cn("w-5 h-5", isAr ? "ml-0.5" : "mr-0.5")} />
                         </button>
                     )}
 
@@ -128,9 +141,12 @@ export function ReferenceSection({
                     {canScrollRight && (
                         <button
                             onClick={() => scroll("right")}
-                            className="absolute right-[-20px] top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white text-[#111111] flex items-center justify-center shadow-xl border border-zinc-100 z-20 hover:scale-110 hover:bg-[#111111] hover:text-white transition-all hidden lg:flex"
+                            className={cn(
+                                "absolute top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white text-[#111111] flex items-center justify-center shadow-xl border border-zinc-100 z-20 hover:scale-110 hover:bg-[#111111] hover:text-white transition-all hidden lg:flex",
+                                isAr ? "left-[-20px]" : "right-[-20px]"
+                            )}
                         >
-                            <ChevronRight className="w-5 h-5 ml-0.5" />
+                            <ChevronRight className={cn("w-5 h-5", isAr ? "mr-0.5" : "ml-0.5")} />
                         </button>
                     )}
                 </div>

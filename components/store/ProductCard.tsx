@@ -3,9 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, ChevronLeft, ChevronRight, Heart } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import { ShoppingBag, Heart } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
+import { useCurrency } from "@/components/providers/currency-provider";
+import { useLanguage } from "@/components/providers/language-provider";
+import { motion } from "framer-motion";
 
 interface ProductProps {
     product: {
@@ -24,8 +27,9 @@ interface ProductProps {
 
 export function ProductCard({ product, className }: ProductProps) {
     const { addItem } = useCart();
+    const { formatPrice: formatCurrency } = useCurrency();
+    const { t, language } = useLanguage();
     const [isAdded, setIsAdded] = useState(false);
-    const [imageIndex, setImageIndex] = useState(0);
 
     const categoryName = typeof product.category === 'object'
         ? product.category?.name
@@ -49,20 +53,6 @@ export function ProductCard({ product, className }: ProductProps) {
         imagesList = ["https://images.unsplash.com/photo-1550009158-9ebf69173e03?q=80&w=1000"];
     }
 
-    const currentImage = imagesList[imageIndex];
-
-    const nextImage = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setImageIndex((prev: number) => (prev + 1) % imagesList.length);
-    };
-
-    const prevImage = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setImageIndex((prev: number) => (prev - 1 + imagesList.length) % imagesList.length);
-    };
-
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -70,7 +60,7 @@ export function ProductCard({ product, className }: ProductProps) {
             id: product.id,
             name: product.name,
             price: product.price,
-            image: currentImage,
+            image: imagesList[0],
             quantity: 1,
             category: categoryName,
             size: null,
@@ -81,114 +71,131 @@ export function ProductCard({ product, className }: ProductProps) {
     };
 
     return (
-        <div className={cn("bg-white flex flex-col group relative overflow-hidden h-full border border-zinc-100 transition-all duration-300 hover:shadow-2xl", className)}>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className={cn("bg-white flex flex-col group relative overflow-hidden h-full border border-zinc-50 transition-all duration-700 hover:shadow-2xl hover:-translate-y-2 rounded-[2px]", className)}
+        >
             {/* Image Container */}
-            <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#F9F9F9] p-2">
-                <Link href={`/product/${product.slug}`} className="block h-full w-full relative rounded-md overflow-hidden">
-                    <Image
-                        src={currentImage}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
-                        unoptimized
-                    />
+            <div className="relative aspect-[4/5] w-full overflow-hidden bg-zinc-50">
+                <Link href={`/product/${product.slug}`} className="block h-full w-full relative group/image">
+                    {/* Primary Image with Ken Burns Hover */}
+                    <div className={cn(
+                        "absolute inset-0 transition-transform duration-[3s] ease-out z-10",
+                        imagesList.length > 1 ? "group-hover:opacity-0 group-hover:scale-110" : "group-hover:scale-110"
+                    )}>
+                        <Image
+                            src={imagesList[0]}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                        />
+                    </div>
+
+                    {/* Secondary Image */}
+                    {imagesList.length > 1 && (
+                        <div className="absolute inset-0 transition-all duration-[1.5s] ease-out opacity-0 group-hover:opacity-100 scale-105 group-hover:scale-100 z-0">
+                            <Image
+                                src={imagesList[1]}
+                                alt={`${product.name} - alternate`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                            />
+                        </div>
+                    )}
+
+                    {/* Luxury Floating Frame Overlay */}
+                    <div className="absolute inset-4 border border-white/0 group-hover:border-white/20 transition-all duration-700 z-20 pointer-events-none" />
                 </Link>
-                
+
                 {/* Wishlist Icon */}
-                <button className="absolute top-4 right-4 z-20 p-2 bg-white/60 backdrop-blur-md rounded-full shadow-sm hover:bg-white text-[#555] transition-all">
-                    <Heart className="w-4 h-4" />
+                <button className={cn(
+                    "absolute top-4 z-30 w-10 h-10 glass rounded-full flex items-center justify-center text-black/60 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-700 hover:bg-white hover:text-brand-burgundy",
+                    language === 'ar' ? "left-4" : "right-4"
+                )}>
+                    <Heart className="w-4 h-4 stroke-[1.5]" />
                 </button>
 
-                {/* Gallery Navigation Arrows */}
-                {imagesList.length > 1 && (
-                    <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                        <button 
-                            onClick={prevImage}
-                            className="p-1.5 bg-white/90 rounded-full hover:bg-white text-[#111111] shadow-sm"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <button 
-                            onClick={nextImage}
-                            className="p-1.5 bg-white/90 rounded-full hover:bg-white text-[#111111] shadow-sm"
-                        >
-                            <ChevronRight className="w-4 h-4" />
-                        </button>
-                    </div>
-                )}
+                {/* Status Badge */}
+                <div className={cn("absolute top-4 z-30", language === 'ar' ? "right-4" : "left-4")}>
+                    <span className="bg-[#111] text-white text-[8px] font-black tracking-[0.4em] uppercase px-3 py-1 pb-1.5 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-700">
+                        {t('product.signature')}
+                    </span>
+                </div>
             </div>
 
             {/* Content Container */}
-            <div className="flex flex-col flex-1 px-4 py-4 text-left">
-                {/* Color Variants */}
-                <div className="flex items-center gap-1.5 mb-3 min-h-[16px]">
-                    {(() => {
-                        let colorList: any[] = [];
-                        try {
-                            if (product.colors && typeof product.colors === 'string' && product.colors.startsWith('[')) {
-                                colorList = JSON.parse(product.colors);
-                            }
-                        } catch (e) {
-                            console.error("Error parsing colors", e);
-                        }
+            <div className={cn(
+                "flex flex-col flex-1 px-6 py-6 space-y-4",
+                language === 'ar' ? "text-right" : "text-left"
+            )}>
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black tracking-[0.3em] text-zinc-300 uppercase">
+                        {categoryName}
+                    </span>
 
-                        if (colorList.length > 0) {
-                            return (
-                                <>
-                                    {colorList.slice(0, 3).map((clr: any, idx: number) => (
-                                        <div 
-                                            key={idx} 
-                                            className="w-4 h-4 rounded-full border border-gray-200 shadow-sm"
-                                            style={{ backgroundColor: clr.hex || clr.color || clr.name }}
-                                            title={clr.name}
-                                        />
-                                    ))}
-                                    {colorList.length > 3 && (
-                                        <span className="text-[11px] text-[#888] font-medium">+{colorList.length - 3} more</span>
-                                    )}
-                                </>
-                            );
-                        }
-                        
-                        // Default placeholders that match image 2 vibe
-                        return (
-                            <>
-                                <div className="w-4 h-4 rounded-full bg-pink-100 border border-gray-100" />
-                                <div className="w-4 h-4 rounded-full bg-yellow-100 border border-gray-100" />
-                                <div className="w-4 h-4 rounded-full bg-blue-50 border border-gray-100" />
-                                <span className="text-[11px] text-[#888] font-medium">+1 more</span>
-                            </>
-                        );
-                    })()}
+                    {/* Minimal Color Swatches */}
+                    <div className="flex gap-1.5">
+                        {(() => {
+                            let colorList: any[] = [];
+                            try {
+                                if (product.colors && typeof product.colors === 'string' && product.colors.startsWith('[')) {
+                                    colorList = JSON.parse(product.colors);
+                                }
+                            } catch { }
+
+                            return colorList.slice(0, 2).map((clr, i) => (
+                                <div
+                                    key={i}
+                                    className="w-2.5 h-2.5 rounded-full border border-zinc-100 shadow-sm"
+                                    style={{ backgroundColor: clr.hex || clr.color || clr.name }}
+                                />
+                            ));
+                        })()}
+                    </div>
                 </div>
 
                 {/* Title */}
-                <Link href={`/product/${product.slug}`} className="block mb-2">
-                    <h3 className="font-sans font-bold text-[13px] text-[#111] uppercase tracking-wider line-clamp-2 leading-tight min-h-[32px]">
+                <Link href={`/product/${product.slug}`} className="block">
+                    <h3 className="font-serif text-[18px] text-[#111] tracking-tight group-hover:text-brand-burgundy transition-colors line-clamp-2 min-h-[50px] leading-snug">
                         {product.name}
                     </h3>
                 </Link>
 
-                {/* Price */}
-                <div className="mb-5">
-                    <span className="text-[#111] font-black text-[16px]">
-                        {formatPrice(product.price)}
-                    </span>
-                </div>
+                {/* Footer Section */}
+                <div className="pt-2 flex flex-col gap-6">
+                    <div className="flex items-end justify-between">
+                        <span className="text-[#111] font-black text-[20px] tracking-tighter">
+                            {formatCurrency(product.price)}
+                        </span>
+                        <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest mb-1.5">
+                            {t('product.exclVat')}
+                        </span>
+                    </div>
 
-                {/* Add To Cart Button - Minimalist Border Style */}
-                <button
-                    onClick={handleAddToCart}
-                    disabled={isAdded}
-                    className={cn(
-                        "w-full h-[52px] flex items-center justify-center gap-3 font-bold text-[11px] tracking-[0.2em] uppercase transition-all duration-500 bg-white border border-[#111] text-[#111] hover:bg-black hover:text-white rounded-none",
-                        isAdded && "bg-black text-white"
-                    )}
-                >
-                    <ShoppingBag className="w-4 h-4 stroke-[1.5]" />
-                    {isAdded ? "ADDED TO CART" : "ADD TO CART"}
-                </button>
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={isAdded}
+                        className={cn(
+                            "w-full h-[58px] flex items-center justify-center gap-4 font-black text-[10px] tracking-[0.4em] uppercase transition-all duration-700 relative overflow-hidden border border-zinc-100 hover:border-[#111] group/btn",
+                            isAdded ? "bg-black text-white" : "bg-white text-[#111]"
+                        )}
+                    >
+                        <span className="relative z-10 flex items-center gap-3 transition-colors duration-700 group-hover/btn:text-white">
+                            <ShoppingBag className="w-4 h-4 stroke-[1.5]" />
+                            {isAdded ? t('product.addedShort') : t('product.acquirePiece')}
+                        </span>
+
+                        {!isAdded && (
+                            <div className="absolute inset-0 bg-[#111] translate-y-full group-hover/btn:translate-y-0 transition-transform duration-700" />
+                        )}
+                    </button>
+                </div>
             </div>
-        </div>
+        </motion.div>
     );
 }

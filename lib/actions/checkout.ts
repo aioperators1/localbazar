@@ -8,6 +8,8 @@ interface CheckoutItem {
     id: string; // Product ID
     quantity: number;
     price: number;
+    size?: string | null;
+    color?: string | null;
 }
 
 interface CheckoutData {
@@ -98,7 +100,9 @@ export async function placeOrder(data: CheckoutData) {
                         create: validItems.map(item => ({
                             productId: item.id,
                             quantity: item.quantity,
-                            price: item.price
+                            price: item.price,
+                            size: item.size,
+                            color: item.color
                         }))
                     }
                 }

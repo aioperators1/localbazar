@@ -5,6 +5,7 @@ import { Header } from "@/components/store/Header";
 import { Footer } from "@/components/store/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
+import { Maintenance } from "@/components/store/Maintenance";
 
 export function LayoutWrapper({ 
   children, 
@@ -25,12 +26,17 @@ export function LayoutWrapper({
     );
   }
 
+  // Maintenance Mode Check
+  if (settings?.maintenanceMode === "true" && pathname !== "/maintenance" && !pathname?.startsWith("/login") && !pathname?.startsWith("/api/auth")) {
+    return <Maintenance />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <ScrollProgress />
       <Header settings={settings} />
       <main className="flex-grow">{children}</main>
-      <Footer />
+      <Footer settings={settings} />
       <Toaster />
     </div>
   );

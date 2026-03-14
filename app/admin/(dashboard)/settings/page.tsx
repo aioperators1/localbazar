@@ -17,6 +17,7 @@ import {
     Loader2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ export default function SettingsPage() {
         homepageSubtitle: "LUXURY COLLECTION",
         aboutText: "Experience the ultimate expression of modesty and elegance with our handcrafted abayas.",
         homepageImage: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=2000",
+        heroWatermark: "AUTHENTIC",
     });
 
     useEffect(() => {
@@ -289,6 +291,15 @@ export default function SettingsPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
+                                    <Label className="text-[12px] font-black uppercase tracking-widest text-[#616161]">Hero Dynamic Watermark</Label>
+                                    <Input 
+                                        value={settings.heroWatermark} 
+                                        onChange={(e) => handleChange('heroWatermark', e.target.value)}
+                                        placeholder="AUTHENTIC"
+                                        className="h-10 border-[#D2D2D2] rounded-lg focus:ring-black"
+                                    />
+                                </div>
+                                <div className="space-y-2">
                                     <Label className="text-[12px] font-black uppercase tracking-widest text-[#616161]">About / Description Text</Label>
                                     <Textarea 
                                         value={settings.aboutText} 
@@ -296,12 +307,12 @@ export default function SettingsPage() {
                                         className="min-h-[100px] border-[#D2D2D2] rounded-lg focus:ring-black resize-none"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label className="text-[12px] font-black uppercase tracking-widest text-[#616161]">Hero Image URL</Label>
-                                    <Input 
-                                        value={settings.homepageImage || ""} 
-                                        onChange={(e) => handleChange('homepageImage', e.target.value)}
-                                        className="h-10 border-[#D2D2D2] rounded-lg focus:ring-black"
+                                <div className="space-y-4 pt-4">
+                                    <Label className="text-[12px] font-black uppercase tracking-widest text-[#616161]">Hero Dynamic Backdrop</Label>
+                                    <ImageUpload 
+                                        value={settings.homepageImage ? [settings.homepageImage] : []}
+                                        onChange={(urls) => handleChange('homepageImage', urls[0] || "")}
+                                        onRemove={() => handleChange('homepageImage', "")}
                                     />
                                 </div>
                             </div>

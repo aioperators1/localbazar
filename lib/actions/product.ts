@@ -74,11 +74,18 @@ export async function getAllProducts(
     }
 
     if (search) {
-      where.OR = [
-        ...(where.OR || []),
-        { name: { contains: search } },
-        { description: { contains: search } }
-      ];
+      const searchCondition = {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } }
+        ]
+      };
+      
+      if (where.AND) {
+        where.AND.push(searchCondition);
+      } else {
+        where.AND = [searchCondition];
+      }
     }
 
     if (filter === 'instock') {

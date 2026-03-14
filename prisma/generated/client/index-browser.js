@@ -231,7 +231,9 @@ exports.Prisma.OrderItemScalarFieldEnum = {
   orderId: 'orderId',
   productId: 'productId',
   quantity: 'quantity',
-  price: 'price'
+  price: 'price',
+  size: 'size',
+  color: 'color'
 };
 
 exports.Prisma.ReviewScalarFieldEnum = {
@@ -294,6 +296,19 @@ exports.Prisma.BrandScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.VoucherScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  type: 'type',
+  value: 'value',
+  expiryDate: 'expiryDate',
+  usageLimit: 'usageLimit',
+  usedCount: 'usedCount',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -321,7 +336,8 @@ exports.Prisma.ModelName = {
   DirectMessage: 'DirectMessage',
   Banner: 'Banner',
   Setting: 'Setting',
-  Brand: 'Brand'
+  Brand: 'Brand',
+  Voucher: 'Voucher'
 };
 
 /**

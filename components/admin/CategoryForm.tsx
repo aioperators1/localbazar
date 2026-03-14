@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import Link from "next/link";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 interface Category {
     id: string;
@@ -33,6 +34,7 @@ interface CategoryFormProps {
 export default function CategoryForm({ initialData, categories }: CategoryFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [image, setImage] = useState(initialData?.image || "");
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -43,7 +45,7 @@ export default function CategoryForm({ initialData, categories }: CategoryFormPr
         const data = {
             name,
             slug: name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
-            image: formData.get("image") as string,
+            image,
             parentId: formData.get("parentId") as string,
             description: formData.get("description") as string,
             featured: formData.get("featured") === "on",
@@ -98,19 +100,12 @@ export default function CategoryForm({ initialData, categories }: CategoryFormPr
                     <div className="flex items-center justify-between">
                         <Label className="text-[13px] font-medium text-[#303030]">Collection image</Label>
                     </div>
-                    <div className="border-2 border-dashed border-[#D2D2D2] rounded-[8px] p-8 flex flex-col items-center justify-center text-center space-y-4 hover:bg-[#F9F9F9] transition-colors cursor-pointer group">
-                        <Input 
-                            id="image" 
-                            name="image" 
-                            defaultValue={initialData?.image || ""}
-                            placeholder="Paste Image URL here..."
-                            className="text-[12px] h-8 max-w-xs text-center border-none shadow-none focus:ring-0 bg-transparent"
+                    <div className="flex flex-col gap-4">
+                        <ImageUpload 
+                            value={image ? [image] : []}
+                            onChange={(urls) => setImage(urls[0] || "")}
+                            onRemove={() => setImage("")}
                         />
-                        <div className="flex gap-4">
-                            <Button type="button" variant="secondary" className="h-8 text-[12px] bg-white border-[#D2D2D2] hover:bg-[#F1F1F1] rounded-[6px] shadow-sm">
-                                Upload image
-                            </Button>
-                        </div>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useLanguage } from "@/components/providers/language-provider";
 
 interface ShopToolbarProps {
     totalProducts: number;
@@ -10,6 +11,7 @@ export function ShopToolbar({ totalProducts }: ShopToolbarProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const { t } = useLanguage();
 
     const updateSort = (sortValue: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -24,21 +26,21 @@ export function ShopToolbar({ totalProducts }: ShopToolbarProps) {
     return (
         <div className="flex items-center justify-between py-6">
             <span className="text-[12px] font-bold text-[#111111] uppercase tracking-[0.1em]">
-                {totalProducts} Products found
+                {totalProducts} {t('shop.items')}
             </span>
 
             <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-[#919191] uppercase tracking-widest">Sort by:</span>
+                    <span className="text-[11px] font-bold text-[#919191] uppercase tracking-widest">{t('shop.sortBy')}</span>
                     <select 
                         onChange={(e) => updateSort(e.target.value)}
                         className="text-[11px] font-bold uppercase tracking-widest bg-transparent border-none focus:ring-0 cursor-pointer text-[#111111]"
                         defaultValue={searchParams.get("sort") || "default"}
                     >
-                        <option value="default">Recommended</option>
-                        <option value="newest">New Arrivals</option>
-                        <option value="price_asc">Price: Low to High</option>
-                        <option value="price_desc">Price: High to Low</option>
+                        <option value="default">{t('shop.featured')}</option>
+                        <option value="newest">{t('shop.newest')}</option>
+                        <option value="price_asc">{t('shop.priceLow')}</option>
+                        <option value="price_desc">{t('shop.priceHigh')}</option>
                     </select>
                 </div>
             </div>

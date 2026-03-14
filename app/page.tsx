@@ -3,7 +3,9 @@ import { CategoryCuration } from "@/components/store/CategoryCuration";
 import { NewArrivalsTabs } from "@/components/store/NewArrivalsTabs";
 import { ProductCarousel } from "@/components/store/ProductCarousel";
 import { WhatsAppButton } from "@/components/store/WhatsAppButton";
+import { HomeContent } from "@/components/store/HomeContent";
 import { getAllProducts } from "@/lib/actions/product";
+import { ScrollReveal } from "@/components/store/ScrollReveal";
 import { getAdminBanners } from "@/lib/actions/admin";
 import { ShieldCheck, Truck, RefreshCcw, CreditCard } from "lucide-react";
 import Link from "next/link";
@@ -41,28 +43,17 @@ export default async function Home() {
       {/* Hero - Full width experience */}
       <HeroSection banners={activeBanners} settings={settings} />
 
+      <ScrollReveal delay={0.2}>
+        <NewArrivalsTabs products={allProducts} categories={allCategories} />
+      </ScrollReveal>
 
+      <ScrollReveal delay={0.3}>
+        <CategoryCuration categories={featuredCategories} />
+      </ScrollReveal>
 
-      {/* New Arrivals Section with Tabs */}
-      <NewArrivalsTabs products={allProducts} categories={allCategories} />
+      <HomeContent selectionProducts={selectionProducts as any} selectionCategory={selectionCategory} />
 
-      {/* Curation Grid */}
-      <CategoryCuration categories={featuredCategories} />
-
-      <div className="py-24 bg-[#F9F9F9]">
-        <div className="container mx-auto px-4 lg:px-24 mb-12 text-center">
-            <span className="text-[11px] font-bold text-[#919191] uppercase tracking-[0.4em] mb-4 block">SELECTION</span>
-            <h2 className="font-serif text-[42px] text-black leading-tight">{selectionCategory.name}</h2>
-        </div>
-        <ProductCarousel products={selectionProducts as any} />
-        <div className="text-center mt-16">
-          <Link href={`/shop?category=${selectionCategory.slug}`} className="inline-block bg-black text-white px-12 py-5 text-[12px] font-bold uppercase tracking-[0.3em] hover:bg-[#333] transition-all">
-            Explore the Collection
-          </Link>
-        </div>
-      </div>
-
-      <WhatsAppButton />
+      <WhatsAppButton settings={settings} />
     </div>
   );
 }

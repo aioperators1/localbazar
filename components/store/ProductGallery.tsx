@@ -5,16 +5,23 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+import { useLanguage } from "@/components/providers/language-provider";
+
 interface ProductGalleryProps {
     images: string[];
     name: string;
 }
 
 export function ProductGallery({ images, name }: ProductGalleryProps) {
+    const { language, t } = useLanguage();
+    const isAr = language === 'ar';
     const [selectedImage, setSelectedImage] = useState(0);
 
     return (
-        <div className="flex flex-col lg:flex-row-reverse gap-6 w-full">
+        <div className={cn(
+            "flex flex-col gap-6 w-full",
+            isAr ? "lg:flex-row" : "lg:flex-row-reverse"
+        )} dir={isAr ? "rtl" : "ltr"}>
             {/* Primary Visual Stage */}
             <div className="relative aspect-[3/4] w-full grow overflow-hidden bg-[#F9F9F9] group rounded-xl shadow-sm border border-zinc-100">
                 <AnimatePresence mode="wait">
@@ -37,8 +44,11 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
                 </AnimatePresence>
                 
                 {/* Micro-overlay badge */}
-                <div className="absolute bottom-6 right-6 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full border border-zinc-100/50 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#111111]">Luxe Focus</span>
+                <div className={cn(
+                    "absolute bottom-6 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full border border-zinc-100/50 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+                    isAr ? "left-6" : "right-6"
+                )}>
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#111111]">{t("product.luxeFocus" as any)}</span>
                 </div>
             </div>
 

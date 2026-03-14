@@ -1,22 +1,17 @@
 import { Activity, CreditCard, DollarSign, Package, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
+import { getDashboardStats, getMonthlyRevenue } from "@/lib/actions/admin";
+import { Overview } from "@/components/admin/Overview";
 
 export default async function AnalyticsPage() {
     const [
-        totalRevenue,
-        totalOrders,
-        totalProducts,
-        totalCustomers,
+        statsData,
+        monthlyRevenue,
         recentOrders
     ] = await Promise.all([
-        prisma.order.aggregate({ 
-            _sum: { total: true },
-            where: { status: { not: 'CANCELLED' } }
-        }),
-        prisma.order.count(),
-        prisma.product.count(),
-        prisma.user.count({ where: { role: 'USER' } }),
+        getDashboardStats(),
+        getMonthlyRevenue(),
         prisma.order.findMany({
             take: 5,
             orderBy: { createdAt: 'desc' },
@@ -24,7 +19,7 @@ export default async function AnalyticsPage() {
         })
     ]);
 
-    const revenue = totalRevenue._sum.total ? Number(totalRevenue._sum.total) : 0;
+    const revenue = statsData.revenue;
 
     return (
         <div className="space-y-8 pb-12">
@@ -52,8 +47,10 @@ export default async function AnalyticsPage() {
                         <CreditCard className="h-4 w-4 text-[#616161]" />
                     </CardHeader>
                     <CardContent className="p-6">
-                        <div className="text-2xl font-black text-[#111111]">+{totalOrders}</div>
-                        <p className="text-[10px] text-[#8A8A8A] font-bold uppercase mt-1 tracking-widest">+15% from last month</p>
+                        <div className="text-2xl font-black text-[#111111]">+{statsData.orders}</div>
+                        <p className={`text-[10px] font-bold uppercase mt-1 tracking-widest ${statsData.trends.orders.trend === 'up' ? 'text-[#008060]' : 'text-[#D72C0D]'}`}>
+                            {statsData.trends.orders.change} from last month
+                        </p>
                     </CardContent>
                 </Card>
                 <Card className="border-[#E3E3E3] shadow-sm rounded-xl overflow-hidden">
@@ -62,7 +59,7 @@ export default async function AnalyticsPage() {
                         <Package className="h-4 w-4 text-[#616161]" />
                     </CardHeader>
                     <CardContent className="p-6">
-                        <div className="text-2xl font-black text-[#111111]">+{totalProducts}</div>
+                        <div className="text-2xl font-black text-[#111111]">+{statsData.products}</div>
                         <p className="text-[10px] text-[#8A8A8A] font-bold uppercase mt-1 tracking-widest">Active inventory</p>
                     </CardContent>
                 </Card>
@@ -72,8 +69,10 @@ export default async function AnalyticsPage() {
                         <Users className="h-4 w-4 text-[#616161]" />
                     </CardHeader>
                     <CardContent className="p-6">
-                        <div className="text-2xl font-black text-[#111111]">+{totalCustomers}</div>
-                        <p className="text-[10px] text-[#8A8A8A] font-bold uppercase mt-1 tracking-widest">Registered users</p>
+                        <div className="text-2xl font-black text-[#111111]">+{statsData.users}</div>
+                        <p className={`text-[10px] font-bold uppercase mt-1 tracking-widest ${statsData.trends.users.trend === 'up' ? 'text-[#008060]' : 'text-[#D72C0D]'}`}>
+                            {statsData.trends.users.change} new this month
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -112,11 +111,10 @@ export default async function AnalyticsPage() {
 
                 <Card className="border-[#E3E3E3] shadow-sm rounded-xl overflow-hidden">
                     <CardHeader className="bg-[#F9F9F9] border-b border-[#F1F1F1] p-6">
-                        <CardTitle className="text-[16px] font-black uppercase tracking-tight">Performance Overview</CardTitle>
+                        <CardTitle className="text-[16px] font-black uppercase tracking-tight">Revenue Trends</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 flex flex-col items-center justify-center h-64">
-                         <Activity className="w-12 h-12 text-[#D2D2D2] mb-4" />
-                         <p className="text-[13px] text-[#616161] font-medium text-center">Charts will be active once more sales data is available.</p>
+                    <CardContent className="p-6">
+                        <Overview data={monthlyRevenue} />
                     </CardContent>
                 </Card>
             </div>

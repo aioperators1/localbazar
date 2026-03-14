@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/providers/language-provider";
 
 interface ProductCarouselProps {
     title?: string;
@@ -13,8 +14,16 @@ interface ProductCarouselProps {
 }
 
 export function ProductCarousel({ title, products }: ProductCarouselProps) {
+    const { language } = useLanguage();
+    const isAr = language === 'ar';
+
     const [emblaRef, emblaApi] = useEmblaCarousel(
-        { loop: true, align: "start", skipSnaps: false },
+        { 
+            loop: true, 
+            align: "start", 
+            skipSnaps: false,
+            direction: isAr ? 'rtl' : 'ltr'
+        },
         [Autoplay({ delay: 5000, stopOnInteraction: false })]
     );
 
@@ -40,23 +49,15 @@ export function ProductCarousel({ title, products }: ProductCarouselProps) {
     if (!products.length) return null;
 
     return (
-        <section className="relative group/main">
+        <section className={cn("relative group/main py-12", isAr ? "rtl" : "ltr")}>
             <div className="container mx-auto px-4 lg:px-24">
-                {title && (
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-[24px] font-serif text-black uppercase tracking-tight">
-                            {title}
-                        </h2>
-                    </div>
-                )}
-
                 <div className="relative">
-                    <div className="overflow-hidden" ref={emblaRef}>
-                        <div className="flex -ml-6">
+                    <div className="overflow-visible" ref={emblaRef}>
+                        <div className="flex -ml-8">
                             {products.map((product) => (
                                 <div
                                     key={product.id}
-                                    className="pl-6 pb-4 min-w-[280px] sm:min-w-[320px] md:min-w-[33.33%] lg:min-w-[25%] flex-[0_0_auto]"
+                                    className="pl-8 pb-12 min-w-[280px] sm:min-w-[340px] md:min-w-[45%] lg:min-w-[33.333%] xl:min-w-[25%] flex-[0_0_auto]"
                                 >
                                     <ProductCard product={product} />
                                 </div>
@@ -64,25 +65,41 @@ export function ProductCarousel({ title, products }: ProductCarouselProps) {
                         </div>
                     </div>
 
-                    {/* Navigation Arrows - Minimalist Floating */}
-                    <button
-                        onClick={scrollPrev}
-                        className={cn(
-                            "absolute -left-6 lg:-left-12 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center transition-all opacity-0 group-hover/main:opacity-100 hover:bg-black hover:text-white z-20",
-                            !prevBtnEnabled && "hidden"
-                        )}
-                    >
-                        <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                        onClick={scrollNext}
-                        className={cn(
-                            "absolute -right-6 lg:-right-12 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center transition-all opacity-0 group-hover/main:opacity-100 hover:bg-black hover:text-white z-20",
-                            !nextBtnEnabled && "hidden"
-                        )}
-                    >
-                        <ChevronRight className="w-6 h-6" />
-                    </button>
+                    {/* Navigation Controls - Luxury Bottom Alignment */}
+                    <div className="flex items-center justify-between mt-12 px-2">
+                        {/* Progress Bar/Dashes */}
+                        <div className="flex gap-2">
+                             {Array.from({ length: Math.min(products.length, 5) }).map((_, i) => (
+                                <div key={i} className={cn(
+                                    "h-[2px] w-8 transition-all duration-700",
+                                    i === 0 ? "bg-brand-burgundy w-16" : "bg-zinc-100"
+                                )} />
+                             ))}
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={scrollPrev}
+                                className={cn(
+                                    "w-12 h-12 lg:w-14 lg:h-14 rounded-full border border-zinc-100 flex items-center justify-center transition-all duration-500 hover:bg-black hover:text-white group/btn",
+                                    !prevBtnEnabled && "opacity-30 cursor-not-allowed"
+                                )}
+                                disabled={!prevBtnEnabled}
+                            >
+                                <ChevronLeft className={cn("w-5 h-5 transition-transform group-active/btn:scale-90", isAr && "rotate-180")} />
+                            </button>
+                            <button
+                                onClick={scrollNext}
+                                className={cn(
+                                    "w-14 h-14 rounded-full border border-zinc-100 flex items-center justify-center transition-all duration-500 hover:bg-black hover:text-white group/btn",
+                                    !nextBtnEnabled && "opacity-30 cursor-not-allowed"
+                                )}
+                                disabled={!nextBtnEnabled}
+                            >
+                                <ChevronRight className={cn("w-5 h-5 transition-transform group-active/btn:scale-90", isAr && "rotate-180")} />
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

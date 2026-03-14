@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 type Banner = {
     id: string;
@@ -159,17 +160,11 @@ export default function BannersClient({ initialBanners }: { initialBanners: Bann
 
                         <div className="bg-white p-5 rounded-[12px] border border-[#E3E3E3] shadow-sm space-y-4">
                             <Label className="text-[13px] font-medium text-[#303030]">Media</Label>
-                            <div className="border-2 border-dashed border-[#D2D2D2] rounded-[8px] p-8 flex flex-col items-center justify-center text-center space-y-4 hover:bg-[#F9F9F9] transition-colors cursor-pointer group">
-                                <Input 
-                                    value={formData.image}
-                                    onChange={e => setFormData({ ...formData, image: e.target.value })}
-                                    placeholder="Paste Image URL here..."
-                                    className="text-[12px] h-8 max-w-xs text-center border-none shadow-none focus:ring-0 bg-transparent"
-                                />
-                                <Button type="button" variant="secondary" className="h-8 text-[12px] bg-white border-[#D2D2D2] hover:bg-[#F1F1F1] rounded-[6px] shadow-sm">
-                                    Upload new
-                                </Button>
-                            </div>
+                            <ImageUpload 
+                                value={formData.image ? [formData.image] : []}
+                                onChange={(urls) => setFormData({ ...formData, image: urls[0] || "" })}
+                                onRemove={() => setFormData({ ...formData, image: "" })}
+                            />
                         </div>
                     </div>
 
